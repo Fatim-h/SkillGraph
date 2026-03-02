@@ -1,42 +1,42 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import ForceGraph3D from "react-force-graph-3d";
-import NodeSidebar from "./components/NodeSidebar";
+import SkillNode from "./components/SkillNode";
+import NodeDialog from "./components/NodeDialog";
 
-export default function Graph() {
+export default function Graph({ skills }) {
   const fgRef = useRef();
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
-  const [selectedNode, setSelectedNode] = useState(null);
   const [hoverNode, setHoverNode] = useState(null);
+  const [selectedNode, setSelectedNode] = useState(null); // local selection
 
   useEffect(() => {
-    // Mock data with default positions
-    setGraphData({
-      nodes: [
-        {
-          id: "Q1",
-          name: "Programming",
-          color: "#4F46E5",
-          description: "Designing software.",
-          links: ["https://www.wikidata.org/wiki/Q1"],
-          relations: { subclasses: [{ id: "Q2", name: "JavaScript", color: "#FBBF24" }] },
-          x: 0, y: 0, z: 0
-        },
-        {
-          id: "Q2",
-          name: "JavaScript",
-          color: "#FBBF24",
-          description: "JS language.",
-          links: ["https://www.wikidata.org/wiki/Q2"],
-          relations: { parentclasses: [{ id: "Q1", name: "Programming" }] },
-          x: 50, y: 0, z: 0
-        }
-      ],
-      links: [{ source: "Q1", target: "Q2" }]
+    if (!skills || skills.length === 0) return;
+
+    const nodes = skills.map(skill => new SkillNode({
+      id: skill.id,
+      name: skill.name,
+      description: skill.description || "",
+      notes: skill.notes || "",
+      links: skill.links || [],
+      relations: skill.relations || {},
+      color: skill.color || "#4F46E5"
+    }));
+
+    const links = [];
+    nodes.forEach(node => {
+      node.relations.subclasses?.forEach(sub => {
+        links.push({ source: node.id, target: sub.id, color: "#FF4500", width: 2, arrowLength: 6, arrowRelPos: 1 });
+      });
+      node.relations.associations?.forEach(assoc => {
+        links.push({ source: node.id, target: assoc.id, color: "#1E90FF", width: 2, arrowLength: 0, arrowRelPos: 0 });
+      });
     });
-  }, []);
+
+    setGraphData({ nodes, links });
+  }, [skills]);
 
   const focusNode = useCallback((node) => {
-    if (!node) return;
+    if (!node || !fgRef.current) return;
     const distance = 120;
     const distRatio = 1 + distance / Math.hypot(node.x || 1, node.y || 1, node.z || 1);
     fgRef.current.cameraPosition(
@@ -47,43 +47,33 @@ export default function Graph() {
   }, []);
 
   const handleNodeClick = (node) => {
-    setSelectedNode(node);
     focusNode(node);
+    setSelectedNode(node); // open dialog
   };
 
-  const handleNavigate = (relNode) => {
-    const targetNode = graphData.nodes.find((n) => n.id === relNode.id);
-    if (targetNode) {
-      setSelectedNode(targetNode);
-      focusNode(targetNode);
-    }
-  };
+  const nodeColor = (node) => (node === hoverNode ? "#374151" : node.color || "#4F46E5");
 
   return (
-    <div className="w-screen h-screen bg-gray-100 relative">
+    <div className="w-full h-full relative bg-white">
       <ForceGraph3D
         ref={fgRef}
         graphData={graphData}
         nodeLabel="name"
-        backgroundColor="#f9fafb"
-        nodeColor={(node) =>
-          node === selectedNode ? "#1F2937" : node === hoverNode ? "#374151" : node.color
-        }
+        nodeColor={nodeColor}
         nodeOpacity={0.9}
-        linkColor={() => "#9CA3AF"}
-        linkOpacity={0.6}
-        linkWidth={1.5}
-        linkDirectionalArrowLength={3}
-        linkDirectionalArrowRelPos={1}
+        linkColor={link => link.color}
+        linkWidth={link => link.width}
+        linkDirectionalArrowLength={link => link.arrowLength}
+        linkDirectionalArrowRelPos={link => link.arrowRelPos}
+        linkOpacity={0.8}
         onNodeClick={handleNodeClick}
         onNodeHover={setHoverNode}
       />
+
       {selectedNode && (
-        <NodeSidebar
+        <NodeDialog
           node={selectedNode}
           onClose={() => setSelectedNode(null)}
-          onNavigate={handleNavigate}
-          theme="light"
         />
       )}
     </div>
