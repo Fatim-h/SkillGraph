@@ -2,12 +2,14 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import ForceGraph3D from "react-force-graph-3d";
 import SkillNode from "./components/SkillNode";
 import NodeDialog from "./components/NodeDialog";
+import AddSkillDialog from "./components/AddSkillDialog";
 
 export default function Graph({ skills }) {
   const fgRef = useRef();
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [hoverNode, setHoverNode] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null); // local selection
+  const [showAddDialog, setShowAddDialog] = useState(false);
 
   useEffect(() => {
     if (!skills || skills.length === 0) return;
@@ -53,6 +55,13 @@ export default function Graph({ skills }) {
 
   const nodeColor = (node) => (node === hoverNode ? "#374151" : node.color || "#4F46E5");
 
+  const handleSkillAdded = (newSkill) => {
+    setGraphData(prev => ({
+      nodes: [...prev.nodes, new SkillNode(newSkill)],
+      links: [...prev.links] // relationships come from backend
+    }));
+  };
+
   return (
     <div className="w-full h-full relative bg-white">
       <ForceGraph3D
@@ -70,12 +79,40 @@ export default function Graph({ skills }) {
         onNodeHover={setHoverNode}
       />
 
+      <button
+        onClick={() => setShowAddDialog(true)}
+        style={{
+          position: "absolute",
+          bottom: "20px",
+          right: "20px",
+          width: "50px",
+          height: "50px",
+          borderRadius: "50%",
+          backgroundColor: "#4F46E5",
+          color: "white",
+          fontSize: "28px",
+          border: "none",
+          cursor: "pointer",
+          boxShadow: "0 5px 15px rgba(0,0,0,0.3)"
+        }}
+      >
+        +
+      </button>
+
       {selectedNode && (
         <NodeDialog
           node={selectedNode}
           onClose={() => setSelectedNode(null)}
         />
       )}
+
+      {showAddDialog && (
+  <AddSkillDialog
+    onClose={() => setShowAddDialog(false)}
+    onSkillAdded={handleSkillAdded}
+  />
+)}
+
     </div>
   );
 }

@@ -59,7 +59,7 @@ export default function NodeDialog({ node, onClose }) {
                     href={link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: "#3b82f6", textDecoration: "underline" }}
+                    style={{ color: "#ffffff", textDecoration: "underline" }}
                   >
                     {link}
                   </a>
