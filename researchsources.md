@@ -20,15 +20,16 @@
 Plus ChatGpt
 
 ## Key Insights:
-Wikidata is a free, open, multilingual, collaborative knowledge graph maintained by the Wikimedia Foundation, licensed under CC0 (public domain). It is structured using items (Q), properties (P), and statements and is queryable via SPARQL
+Wikidata is a free, open, multilingual, collaborative knowledge graph maintained by the Wikimedia Foundation, licensed under CC0 (public domain). It is structured using items (Q), properties (P), and statements and is queryable via SPARQL(more on SPARQL in: )
 
 Wikidata is experimenting with: Knowledge graph embeddings (vector representations of entities)
 
 ### Access data:
-- SPARQL Endpoint
+- SPARQL Endpoint: 
 - JSON dumps
 - MediaWiki API, Wikidata API
 - Python tools: SPARQLWrapper, Wikidata Toolkit, wikirepo:https://github.com/andrewtavis/wikirepo
+- Wikibase CLI: https://github.com/maxlath/wikibase-cli
 - Hugging Face: https://huggingface.co/datasets/Wikimedians/wikidata-all
 
 ### Advantages:
