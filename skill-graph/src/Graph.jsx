@@ -88,8 +88,8 @@ export default function Graph({ skills }) {
           width: "50px",
           height: "50px",
           borderRadius: "50%",
-          backgroundColor: "#4F46E5",
-          color: "white",
+          backgroundColor: "#ffffff",
+          color: "#000000",
           fontSize: "28px",
           border: "none",
           cursor: "pointer",
@@ -110,6 +110,7 @@ export default function Graph({ skills }) {
   <AddSkillDialog
     onClose={() => setShowAddDialog(false)}
     onSkillAdded={handleSkillAdded}
+    existingSkills={graphData.nodes}
   />
 )}
 

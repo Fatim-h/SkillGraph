@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const { getSkillDetails } = require("./skill-details.js");
+const { addSkill } = require("./add-skills.js");
 
 const app = express();
 app.use(cors());
@@ -8,7 +10,7 @@ app.use(express.json());
 const WIKIDATA_SEARCH_URL = "https://www.wikidata.org/w/api.php";
 const skills = [
   {
-    id: "Q1",
+    id: "Q9143",
     name: "Programming",
     description: "Designing software.",
     notes: "",
@@ -84,54 +86,29 @@ app.get("/search-skill", async (req, res) => {
   }
 });
 
-app.post("/add-skill", async (req, res) => {
-  const { qid } = req.body;
+app.post("/add-skill", (req, res) => {
+  const skill = req.body;
 
-  if (!qid) {
-    return res.status(400).json({ error: "Missing qid" });
+  const result = addSkill(skill, skills);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
   }
+});
+
+app.get("/skill-details", async (req, res) => {
+  const { qid } = req.query;
+
+  if (!qid) return res.status(400).json({ error: "Missing qid" });
 
   try {
-    // Prevent duplicates
-    const existing = skills.find(skill => skill.id === qid);
-    if (existing) {
-      return res.json(existing);
-    }
-
-    // Fetch entity details from Wikidata
-    const url = `https://www.wikidata.org/wiki/Special:EntityData/${qid}.json`;
-
-    const response = await fetch(url);
-    const data = await response.json();
-
-    const entity = data.entities[qid];
-
-    const label =
-      entity.labels?.en?.value || "No label";
-
-    const description =
-      entity.descriptions?.en?.value || "";
-
-    const newSkill = {
-      id: qid,
-      name: label,
-      description: description,
-      notes: "",
-      links: [`https://www.wikidata.org/wiki/${qid}`],
-      relations: {
-        subclasses: [],
-        parentclasses: [],
-        associations: []
-      }
-    };
-
-    skills.push(newSkill);
-
-    res.json(newSkill);
-
+    const skill = await getSkillDetails(qid);
+    res.json(skill);
   } catch (err) {
-    console.error("Add skill error:", err);
-    res.status(500).json({ error: "Failed to add skill" });
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch skill details" });
   }
 });
 
