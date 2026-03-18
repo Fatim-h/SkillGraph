@@ -12,11 +12,13 @@ Instead of manually linking skills, the system uses structured knowledge from Wi
 - Human-in-the-loop correction for refining connections
 
 ### Knowledge Model (P-values used):
+```
 const RELATION_TYPES = {
   parentclasses: ["P279", "P31", "P361"],
   subclasses: ["P527"], // + reverse P279
   associations: ["P2283", "P277", "P366", "P2578", "P737", "P738"]
 };
+```
 
 These are used to construct: hierarchical relationships, compositional structures and semantic associations.
 
