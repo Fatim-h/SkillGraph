@@ -37,4 +37,47 @@ These are used to construct: hierarchical relationships, compositional structure
 [Research Sources](https://github.com/Fatim-h/SkillGraph/blob/main/researchsources.md)
 
 ## Version 2:
-Include an inference layer(deciding between rule-based, NLP, ML or hybrid). expected inclusion of python.
+Include an inference layer(deciding between rule-based, NLP, ML or hybrid). expected inclusion of python.(To come)
+
+## How to Run ?
+### Prerequisites:
+- Node.js (v18+ recommended)
+- npm
+
+### 1. Clone repository
+```
+git clone https://github.com/Fatim-h/SkillGraph
+cd SkillGraph
+```
+
+### 2. Install dependencies:
+   #### Frontend:
+   ```
+   cd skill-graph
+   npm install
+   ```
+   #### Backend:
+   ```
+   cd skill-graph
+   cd backend
+   npm install
+   ```
+
+### 3. Run the Backend:
+   ```
+   node index.js
+   ```
+### 4. Run the Frontend:
+   ```
+   npm run dev
+   ```
+
+### 5. Use the App =D
+   - Open the app in browser
+   - Add the skill you want with the + icon
+   - Add more, and more, and more...
+   - See the relationships made
+   - Update the skill nodes as you like
+   - Delete the skills as you like
+
+#### Notes: no backend integration yet(server closes->data gone!), internet is required.
