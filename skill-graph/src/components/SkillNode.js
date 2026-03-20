@@ -1,6 +1,6 @@
 // /components/SkillNode.js
 export default class SkillNode {
-  constructor({ id, name, description, notes, links = [], relations = {} }) {
+  constructor({ id, name, description, notes, links = [], relations = {}, color }) {
     this.id = id;
     this.name = name;
     this.description = description || "";
@@ -11,6 +11,7 @@ export default class SkillNode {
       subclasses: relations.subclasses || [],
       associations: relations.associations || [],
     };
+    this.color = color;
     this.x = 0;
     this.y = 0;
     this.z = 0;

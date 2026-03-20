@@ -1,4 +1,11 @@
-const fetch = global.fetch
+const fetch = global.fetch;
+
+// Your property grouping
+const RELATION_TYPES = {
+  parentclasses: ["P279", "P31", "P361"],
+  subclasses: ["P527"], // + reverse P279 handled separately
+  associations: ["P2283", "P277", "P366", "P2578", "P737", "P738"]
+};
 
 async function queryWikidata(sparql) {
   const response = await fetch("https://query.wikidata.org/sparql", {
@@ -19,26 +26,31 @@ async function queryWikidata(sparql) {
   return data.results.bindings;
 }
 
-// Helper to format SPARQL results into simple {id, name}
+// Standard formatter (for parents & subclasses)
 function formatResults(results) {
   return results
     .map(r => ({
       id: r.item.value.split("/").pop(),
       name: r.itemLabel.value
     }))
-    // optional: filter out unnamed Qxxxx nodes
     .filter(r => !/^Q\d+$/.test(r.name));
 }
 
-/**
- * Main exported function
- * @param {string} qid - Wikidata entity QID
- * @returns {object} Skill object with relations
- */
+// 🔥 NEW: formatter with property type
+function formatAssociations(results) {
+  return results
+    .map(r => ({
+      id: r.item.value.split("/").pop(),
+      name: r.itemLabel.value,
+      type: r.prop.value.split("/").pop() // <-- P value
+    }))
+    .filter(r => !/^Q\d+$/.test(r.name));
+}
+
 async function getSkillDetails(qid) {
   if (!qid) throw new Error("Missing QID");
 
-  // 1️⃣ Fetch entity details
+  // 1️⃣ Entity fetch
   const entityRes = await fetch(
     `https://www.wikidata.org/wiki/Special:EntityData/${qid}.json`
   );
@@ -50,18 +62,17 @@ async function getSkillDetails(qid) {
   const label = entity.labels?.en?.value || "";
   const description = entity.descriptions?.en?.value || "";
 
-  // 2️⃣ Parent classes (P279 + P31)
+  // 2️⃣ Parent classes (P279, P31, P361)
   const parentQuery = `
-  SELECT ?item ?itemLabel
-  WHERE {
-    wd:${qid} wdt:P279|wdt:P31 ?item .
+  SELECT ?item ?itemLabel WHERE {
+    wd:${qid} ?p ?item .
+    VALUES ?p { ${RELATION_TYPES.parentclasses.map(p => `wdt:${p}`).join(" ")} }
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
   }`;
 
-  // 3️⃣ Subclasses / children (reverse P279 + P31)
+  // 3️⃣ Subclasses (reverse P279 + P31 + P527)
   const childQuery = `
-  SELECT ?item ?itemLabel
-  WHERE {
+  SELECT ?item ?itemLabel WHERE {
     {
       ?item wdt:P279 wd:${qid} .
     }
@@ -69,25 +80,30 @@ async function getSkillDetails(qid) {
     {
       ?item wdt:P31 wd:${qid} .
     }
+    UNION
+    {
+      wd:${qid} wdt:P527 ?item .
+    }
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
   }`;
 
-  // 4️⃣ Associations (P361 + P527)
+  // 4️⃣ Associations (WITH PROPERTY TYPE)
   const associationQuery = `
-  SELECT ?item ?itemLabel
-  WHERE {
-    wd:${qid} wdt:P361|wdt:P527 ?item .
+  SELECT ?item ?itemLabel ?prop WHERE {
+    wd:${qid} ?p ?item .
+    VALUES ?p { ${RELATION_TYPES.associations.map(p => `wdt:${p}`).join(" ")} }
+    ?prop wikibase:directClaim ?p .
     SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
   }`;
 
-  // 5️⃣ Run queries in parallel
+  // 5️⃣ Run all queries
   const [parents, children, associations] = await Promise.all([
     queryWikidata(parentQuery),
     queryWikidata(childQuery),
     queryWikidata(associationQuery)
   ]);
 
-  // 6️⃣ Build final object
+  // 6️⃣ Return structured object
   return {
     id: qid,
     name: label,
@@ -95,7 +111,7 @@ async function getSkillDetails(qid) {
     relations: {
       parentclasses: formatResults(parents),
       subclasses: formatResults(children),
-      associations: formatResults(associations)
+      associations: formatAssociations(associations) // 🔥 includes type
     }
   };
 }

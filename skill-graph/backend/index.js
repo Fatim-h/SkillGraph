@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const { getSkillDetails } = require("./skill-details.js");
 const { addSkill } = require("./add-skills.js");
+const { deleteSkill } = require("./delete-skills.js");
+const { updateSkill } = require("./update-skills.js");
 
 const app = express();
 app.use(cors());
@@ -15,6 +17,7 @@ const skills = [
     description: "Designing software.",
     notes: "",
     links: ["https://www.wikidata.org/wiki/Q1"],
+    color: "#4F46E5",
     relations: {
       subclasses: [{ id: "Q2", name: "JavaScript", color: "#FBBF24" }],
       parentclasses: [],
@@ -27,9 +30,10 @@ const skills = [
     description: "JS language.",
     notes: "",
     links: ["https://www.wikidata.org/wiki/Q2"],
+    color: "#4F46E5",
     relations: {
       subclasses: [],
-      parentclasses: [{ id: "Q1", name: "Programming", color: "#4F46E5" }],
+      parentclasses: [{ id: "Q9143", name: "Programming", color: "#4F46E5" }],
       associations: []
     }
   }
@@ -109,6 +113,30 @@ app.get("/skill-details", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch skill details" });
+  }
+});
+
+app.delete("/delete-skill/:id", (req, res) => {
+  const { id } = req.params;
+
+  const result = deleteSkill(id, skills);
+
+  if (result.success) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+});
+
+app.put("/update-skill/:id", (req, res) => {
+  const updatedSkill = req.body;
+
+  const result = updateSkill(updatedSkill, skills);
+
+  if (result.success) {
+    res.json(result.skill);
+  } else {
+    res.status(400).json(result);
   }
 });
 
