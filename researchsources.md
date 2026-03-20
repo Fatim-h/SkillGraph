@@ -20,7 +20,7 @@
 Plus ChatGpt
 
 ## Key Insights:
-Wikidata is a free, open, multilingual, collaborative knowledge graph maintained by the Wikimedia Foundation, licensed under CC0 (public domain). It is structured using items (Q), properties (P), and statements and is queryable via SPARQL(more on SPARQL in: Tutorial[https://www.wikidata.org/wiki/Wikidata:SPARQL_tutorial#Instances_and_classes])
+Wikidata is a free, open, multilingual, collaborative knowledge graph maintained by the Wikimedia Foundation, licensed under CC0 (public domain). It is structured using items (Q), properties (P), and statements and is queryable via SPARQL(more on SPARQL in: Tutorial[https://www.wikidata.org/wiki/Wikidata:SPARQL_tutorial#Instances_and_classes], )
 
 Basic SPARQL query:
 ```
@@ -65,3 +65,10 @@ Wikidata is experimenting with: Knowledge graph embeddings (vector representatio
 - Node.js REST API
 - Neo4j
 - Wikidata SPARQL queries
+
+### Properties Used(P-values):
+- parentclasses: ["P279", "P31", "P361"]
+- subclasses: ["P527"], // plus reverse P279 from SPARQL
+- associations: ["P2283", "P277", "P366", "P2578", "P737", "P738"]
+
+(you can searc more here: https://www.wikidata.org/wiki/Wikidata:List_of_properties/all_in_one_table)
