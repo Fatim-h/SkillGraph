@@ -1,11 +1,5 @@
 const fetch = global.fetch;
-
-// Your property grouping
-const RELATION_TYPES = {
-  parentclasses: ["P279", "P31", "P361"],
-  subclasses: ["P527"], // + reverse P279 handled separately
-  associations: ["P2283", "P277", "P366", "P2578", "P737", "P738"]
-};
+const { RELATION_TYPES } = require("./relation-info.js");
 
 async function queryWikidata(sparql) {
   const response = await fetch("https://query.wikidata.org/sparql", {

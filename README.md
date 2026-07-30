@@ -27,7 +27,7 @@ These are used to construct: hierarchical relationships, compositional structure
 - React(UI)
 - react-force-graph-3d + react-force-graph-2d (visualization)
 - Node.js(API layer)
-- Neo4j backend(graph persistence - not implemented yet)
+- Local Storage
 
 ### Weakness:
 - Heavily dependent on Wikidata structure (can miss practical relationships)

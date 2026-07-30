@@ -1,12 +1,15 @@
 // add-skill.js
 
+const { applyRulesToSkill, findMergeTarget, mergeSkills } = require("./rules.js");
+
 /**
  * Adds a skill to the provided skills array
  * @param {object} skill - Full skill object from frontend
  * @param {Array} skillsArr - Current array of stored skills
+ * @param {Array} [rulesArr] - Current array of user-defined equivalence rules
  * @returns {object} { success: boolean, message: string, skill?: object }
  */
-function addSkill(skill, skillsArr) {
+function addSkill(skill, skillsArr, rulesArr = []) {
   try {
     console.log(skill);
     // 1️⃣ Validate required fields
@@ -73,7 +76,23 @@ function addSkill(skill, skillsArr) {
     }
   });
 
-    // 5 Add skill to array
+    // 5 If a '==' merge rule matches an already-added skill, merge into it
+    // instead of creating a new, separate node.
+    const mergeTarget = findMergeTarget(skill, skillsArr, rulesArr);
+    if (mergeTarget) {
+      mergeSkills(mergeTarget, skill);
+      return {
+        success: true,
+        message: `Merged into existing skill '${mergeTarget.name}'`,
+        skill: mergeTarget
+      };
+    }
+
+    // 6 Apply any user-defined association/parent rules
+    // (e.g. "calculus = differentiation = integration", "math < calculus")
+    applyRulesToSkill(skill, skillsArr, rulesArr);
+
+    // 7 Add skill to array
     skillsArr.push(skill);
 
     console.log(skillsArr);

@@ -156,14 +156,16 @@ export default function AddSkillDialog({ onClose, onSkillAdded, existingSkills=[
         }
       );
 
+      const data = await res.json().catch(() => ({}));
+
       if(!res.ok){
-          alert(data.error || "Skill not added");
+          alert(data.error || data.message || "Skill not added");
           return;
         }
-      
+
         alert("Skill Added");
 
-      const newSkill=await res.json();
+      const newSkill=data;
 
       onSkillAdded(newSkill);
 

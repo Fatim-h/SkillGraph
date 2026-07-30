@@ -4,6 +4,10 @@ import ForceGraph3D from "react-force-graph-3d";
 import SkillNode from "./components/SkillNode";
 import NodeDialog from "./components/NodeDialog";
 import AddSkillDialog from "./components/AddSkillDialog";
+import AddRuleDialog from "./components/AddRuleDialog";
+import InfoDialog from "./components/InfoDialog";
+import ListSidebar from "./components/ListSidebar";
+import FindLinkDialog from "./components/FindLinkDialog";
 
 export default function Graph({ skills }) {
   const fgRef = useRef();
@@ -12,6 +16,10 @@ export default function Graph({ skills }) {
   const [hoverNode, setHoverNode] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showRuleDialog, setShowRuleDialog] = useState(false);
+  const [showInfoDialog, setShowInfoDialog] = useState(false);
+  const [showList, setShowList] = useState(false);
+  const [showFindLink, setShowFindLink] = useState(false);
   const [is3D, setIs3D] = useState(false);
 
   const GraphComponent = is3D ? ForceGraph3D : ForceGraph2D;
@@ -139,6 +147,99 @@ export default function Graph({ skills }) {
         {is3D ? "2D" : "3D"}
       </button>
 
+      {/* RULES BUTTON */}
+      <button
+        onClick={() => setShowRuleDialog(true)}
+        title="Manage custom rules"
+        style={{
+          position: "absolute",
+          bottom: "140px",
+          right: "20px",
+          width: "50px",
+          height: "50px",
+          padding: "10px",
+          borderRadius: "50%",
+          backgroundColor: "#ffffff",
+          color: "#000000",
+          fontSize: "20px",
+          border: "none",
+          cursor: "pointer",
+          boxShadow: "0 5px 15px rgba(0,0,0,0.3)"
+        }}
+      >
+        ⚙
+      </button>
+
+      {/* INFO BUTTON */}
+      <button
+        onClick={() => setShowInfoDialog(true)}
+        title="Legend: what relations and colors mean"
+        style={{
+          position: "absolute",
+          bottom: "200px",
+          right: "20px",
+          width: "50px",
+          height: "50px",
+          padding: "10px",
+          borderRadius: "50%",
+          backgroundColor: "#ffffff",
+          color: "#000000",
+          fontSize: "20px",
+          border: "none",
+          cursor: "pointer",
+          boxShadow: "0 5px 15px rgba(0,0,0,0.3)"
+        }}
+      >
+        ℹ
+      </button>
+
+      {/* FIND LINK BUTTON */}
+      <button
+        onClick={() => setShowFindLink(true)}
+        title="Find link between two nodes"
+        style={{
+          position: "absolute",
+          bottom: "260px",
+          right: "20px",
+          width: "50px",
+          height: "50px",
+          padding: "10px",
+          borderRadius: "50%",
+          backgroundColor: "#ffffff",
+          color: "#000000",
+          fontSize: "18px",
+          border: "none",
+          cursor: "pointer",
+          boxShadow: "0 5px 15px rgba(0,0,0,0.3)"
+        }}
+      >
+        🔗
+      </button>
+
+      {/* LIST BUTTON */}
+      <button
+        onClick={() => setShowList((prev) => !prev)}
+        title="List all nodes"
+        style={{
+          position: "absolute",
+          top: "20px",
+          left: "20px",
+          width: "50px",
+          height: "50px",
+          padding: "10px",
+          borderRadius: "50%",
+          backgroundColor: "#ffffff",
+          color: "#000000",
+          fontSize: "18px",
+          border: "none",
+          cursor: "pointer",
+          boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
+          zIndex: 600
+        }}
+      >
+        ☰
+      </button>
+
       {/* ADD BUTTON */}
       <button
         onClick={() => setShowAddDialog(true)}
@@ -188,6 +289,40 @@ export default function Graph({ skills }) {
           onClose={() => setShowAddDialog(false)}
           onSkillAdded={handleSkillAdded}
           existingSkills={graphData.nodes}
+        />
+      )}
+      {/* CUSTOM RULES */}
+      {showRuleDialog && (
+        <AddRuleDialog
+          onClose={() => {
+            setShowRuleDialog(false);
+            // Reload so any skills newly linked by a rule change show up
+            // (mirrors the reload AddSkillDialog already does after adding a skill).
+            window.location.reload();
+          }}
+        />
+      )}
+      {/* LIST VIEW */}
+      {showList && (
+        <ListSidebar
+          nodes={graphData.nodes}
+          onSelectNode={(node) => {
+            handleNodeClick(node);
+          }}
+          onClose={() => setShowList(false)}
+        />
+      )}
+
+      {/* INFO / LEGEND */}
+      {showInfoDialog && (
+        <InfoDialog onClose={() => setShowInfoDialog(false)} />
+      )}
+
+      {/* FIND LINK BETWEEN TWO NODES */}
+      {showFindLink && (
+        <FindLinkDialog
+          nodes={graphData.nodes}
+          onClose={() => setShowFindLink(false)}
         />
       )}
     </div>

@@ -62,3 +62,6 @@ yarn-error.log*
 # Neo4j data & logs (if you run it locally inside project)
 neo4j/data/
 neo4j/logs/
+
+# Local storage data file (basic local persistence for skills/rules)
+backend/data/

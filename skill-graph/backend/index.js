@@ -4,13 +4,21 @@ const { getSkillDetails } = require("./skill-details.js");
 const { addSkill } = require("./add-skills.js");
 const { deleteSkill } = require("./delete-skills.js");
 const { updateSkill } = require("./update-skills.js");
+const { loadData, saveData } = require("./storage.js");
+const { addRule, deleteRule, applyRulesToAllSkills } = require("./rules.js");
+const { getRelationInfo } = require("./relation-info.js");
+const { findLink } = require("./find-link.js");
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+// Default Express/body-parser JSON limit is 100kb, which is easily exceeded by
+// skills with lots of relations (parentclasses/subclasses/associations pulled
+// from Wikidata). Raise it so those skills don't get silently rejected with a 413.
+app.use(express.json({ limit: "10mb" }));
 
 const WIKIDATA_SEARCH_URL = "https://www.wikidata.org/w/api.php";
-const skills = [
+
+const seedSkills = [
   {
     id: "Q9143",
     name: "Programming",
@@ -38,6 +46,20 @@ const skills = [
     }
   }
 ];
+
+// Basic local storage: load whatever was persisted last time, falling back
+// to the seed data on first run (previously all data lived only in memory
+// and was lost every time the server restarted).
+const persisted = loadData();
+const skills = persisted ? persisted.skills : seedSkills;
+const rules = persisted ? persisted.rules : [];
+
+function persist() {
+  saveData(skills, rules);
+}
+
+// Save the seed data on first run so the file exists right away.
+if (!persisted) persist();
 
 app.get("/skills", (req, res) => {
   res.json(skills);
@@ -93,9 +115,10 @@ app.get("/search-skill", async (req, res) => {
 app.post("/add-skill", (req, res) => {
   const skill = req.body;
 
-  const result = addSkill(skill, skills);
+  const result = addSkill(skill, skills, rules);
 
   if (result.success) {
+    persist();
     res.json(result);
   } else {
     res.status(400).json(result);
@@ -122,6 +145,7 @@ app.delete("/delete-skill/:id", (req, res) => {
   const result = deleteSkill(id, skills);
 
   if (result.success) {
+    persist();
     res.json(result);
   } else {
     res.status(400).json(result);
@@ -134,9 +158,65 @@ app.put("/update-skill/:id", (req, res) => {
   const result = updateSkill(updatedSkill, skills);
 
   if (result.success) {
+    persist();
     res.json(result.skill);
   } else {
     res.status(400).json(result);
+  }
+});
+
+// RULES: users can define their own equivalence groups, e.g.
+// "calculus = differentiation = integration", and those terms will be
+// treated as related when building the graph.
+
+app.get("/rules", (req, res) => {
+  res.json(rules);
+});
+
+app.post("/add-rule", (req, res) => {
+  const { rule } = req.body;
+
+  const result = addRule(rule, rules);
+
+  if (!result.success) {
+    return res.status(400).json(result);
+  }
+
+  // Retroactively link any already-added skills that match the new rule.
+  applyRulesToAllSkills(skills, rules);
+  persist();
+
+  res.json(result);
+});
+
+app.delete("/delete-rule/:id", (req, res) => {
+  const { id } = req.params;
+
+  const result = deleteRule(id, rules);
+
+  if (result.success) {
+    persist();
+    res.json(result);
+  } else {
+    res.status(400).json(result);
+  }
+});
+
+// INFO: explains what the P-code relations and link colors mean.
+app.get("/relation-info", (req, res) => {
+  res.json(getRelationInfo());
+});
+
+// FIND LINK: SPARQL lookup of how two chosen nodes are directly related.
+app.get("/find-link/:from/:to", async (req, res) => {
+  const { from, to } = req.params;
+
+  try {
+    const result = await findLink(from, to);
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Find link failed", error: err.message });
   }
 });
 
